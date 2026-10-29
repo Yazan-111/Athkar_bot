@@ -3,59 +3,63 @@
   "nodes": [
     {
       "parameters": {
-        "rule": {
-          "interval": [
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2784,
+        1088
+      ],
+      "id": "e5126e46-285a-497c-bbd6-3d9964185f68",
+      "name": "Telegram Trigger",
+      "webhookId": "835adc94-88cd-4f1f-9be9-19a702048cfe",
+      "credentials": {
+        "telegramApi": {
+          "id": "XaQLf9FmZtg24QbP",
+          "name": "Athkar bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
             {
-              "triggerAtHour": 6,
-              "triggerAtMinute": 1
-            },
-            {
-              "triggerAtHour": 18,
-              "triggerAtMinute": 1
+              "id": "e53b2237-2f6c-489e-9451-99e46d45b5f1",
+              "name": "bot_token",
+              "value": "8622196701:AAGsrg4ywjJYVM_gbbjqxO-XzhDLjVzn5jQ",
+              "type": "string"
             }
           ]
-        }
+        },
+        "options": {}
       },
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.3,
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
       "position": [
-        704,
-        624
+        -2576,
+        1088
       ],
-      "id": "a20567cc-d786-4b0d-9db6-81ea5c222027",
-      "name": "Schedule Trigger"
+      "id": "c7ab3bb5-7652-4dd6-9488-68439f76ef4e",
+      "name": "Config"
     },
     {
       "parameters": {
-        "content": "## Athkar Messages\n",
-        "height": 528,
-        "width": 1332,
-        "color": 4
+        "jsCode": "const u = $('Telegram Trigger').first().json;\nlet chat_id, from = {}, text = '', cb = '', cb_id = '', message_id = null;\nif (u.callback_query) {\n  const q = u.callback_query;\n  chat_id = q.message.chat.id; from = q.from || {}; cb = q.data || ''; cb_id = q.id; message_id = q.message.message_id;\n} else if (u.message && u.message.chat) {\n  chat_id = u.message.chat.id; from = u.message.from || {}; text = (u.message.text || '').trim();\n} else { return []; }\nconst pad = n => String(n).padStart(3, '0');\nlet action = 'help', arg = '';\nif (cb) {\n  if (cb === 'home') action = 'home';\n  else if (cb === 'help') action = 'help';\n  else if (cb === 'set') action = 'settings';\n  else if (cb.startsWith('menu:')) { action = 'menu'; arg = parseInt(cb.split(':')[1]) || 0; }\n  else if (cb.startsWith('cat:')) { action = 'items'; arg = 'C' + pad(parseInt(cb.split(':')[1])); }\n  else if (cb.startsWith('tm:')) { action = 'timepick'; arg = cb.split(':')[1]; }\n  else if (cb.startsWith('st:')) { action = 'settime'; arg = cb.split(':').slice(1).join(':'); }\n  else if (cb.startsWith('tg:')) { action = 'toggle'; arg = cb.split(':')[1]; }\n} else {\n  const cmd = text.split(/[ @]/)[0].toLowerCase();\n  if (cmd === '/start' || text === 'تسجيل دخول') action = 'start';\n  else if (text === 'تسجيل خروج' || cmd === '/stop') { action = 'toggle'; arg = 'off'; }\n  else if (cmd === '/menu' || text === 'الأذكار' || text === 'عرض الأذكار') { action = 'menu'; arg = 0; }\n  else if (cmd === '/settings' || text === 'الإعدادات') action = 'settings';\n  else if (cmd === '/home') action = 'home';\n  else if (/^c\\d{3}(-\\d+)?$/i.test(text)) { action = 'items'; arg = text.toUpperCase(); }\n}\nreturn [{ json: { chat_id, first_name: from.first_name || '', username: from.username || '', action, arg, is_cb: !!cb, cb_id, message_id, text } }];"
       },
-      "type": "n8n-nodes-base.stickyNote",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        672,
-        416
+        -2352,
+        1088
       ],
-      "typeVersion": 1,
-      "id": "3bd91c0d-0d96-4d31-940b-3657373a8e31",
-      "name": "Sticky Note1"
-    },
-    {
-      "parameters": {
-        "content": "## /start Flow (Reg & logout)",
-        "height": 944,
-        "width": 1984,
-        "color": 5
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        2032,
-        416
-      ],
-      "typeVersion": 1,
-      "id": "61599dcb-3244-400f-b632-5c30f80a2ecf",
-      "name": "Sticky Note2"
+      "id": "03e80b69-ce9b-4d34-adf9-ec68512268e7",
+      "name": "Normalize"
     },
     {
       "parameters": {
@@ -67,23 +71,23 @@
                   "caseSensitive": true,
                   "leftValue": "",
                   "typeValidation": "strict",
-                  "version": 3
+                  "version": 2
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.message.text }}",
-                    "rightValue": "تسجيل دخول",
+                    "id": "495f5ecf-3b46-4886-8881-325020861851",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "start",
                     "operator": {
                       "type": "string",
                       "operation": "equals"
-                    },
-                    "id": "061a3dba-9a27-450c-a47d-6f9785344cd0"
+                    }
                   }
                 ],
                 "combinator": "and"
               },
               "renameOutput": true,
-              "outputKey": "Login"
+              "outputKey": "start"
             },
             {
               "conditions": {
@@ -91,24 +95,23 @@
                   "caseSensitive": true,
                   "leftValue": "",
                   "typeValidation": "strict",
-                  "version": 3
+                  "version": 2
                 },
                 "conditions": [
                   {
-                    "id": "88c5538f-79d9-4138-ab42-1d8156f0e40a",
-                    "leftValue": "={{ $json.message.text }}",
-                    "rightValue": "تسجيل خروج",
+                    "id": "e7167c6d-2c81-4f4e-b691-f00076c162b9",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "home",
                     "operator": {
                       "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
+                      "operation": "equals"
                     }
                   }
                 ],
                 "combinator": "and"
               },
               "renameOutput": true,
-              "outputKey": "Logout"
+              "outputKey": "home"
             },
             {
               "conditions": {
@@ -116,24 +119,23 @@
                   "caseSensitive": true,
                   "leftValue": "",
                   "typeValidation": "strict",
-                  "version": 3
+                  "version": 2
                 },
                 "conditions": [
                   {
-                    "id": "d4cd09ad-d97f-4bf9-b507-cb612ce37961",
-                    "leftValue": "={{ $json.message.text }}",
-                    "rightValue": "/start",
+                    "id": "f87f7e8c-3549-47cf-849a-252ff77de4c7",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "menu",
                     "operator": {
                       "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
+                      "operation": "equals"
                     }
                   }
                 ],
                 "combinator": "and"
               },
               "renameOutput": true,
-              "outputKey": "/start"
+              "outputKey": "menu"
             },
             {
               "conditions": {
@@ -141,23 +143,23 @@
                   "caseSensitive": true,
                   "leftValue": "",
                   "typeValidation": "strict",
-                  "version": 3
+                  "version": 2
                 },
                 "conditions": [
                   {
-                    "id": "3bf393f8-2245-4981-8c9d-bbb7806ba254",
-                    "leftValue": "={{ $json.message.text }}",
-                    "rightValue": "تسجيل دخول",
+                    "id": "2d786fe5-dca6-4e91-ba67-4ec2725d8f7f",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "items",
                     "operator": {
                       "type": "string",
-                      "operation": "notEquals"
+                      "operation": "equals"
                     }
                   }
                 ],
                 "combinator": "and"
               },
               "renameOutput": true,
-              "outputKey": "Wrong input 1"
+              "outputKey": "items"
             },
             {
               "conditions": {
@@ -165,23 +167,23 @@
                   "caseSensitive": true,
                   "leftValue": "",
                   "typeValidation": "strict",
-                  "version": 3
+                  "version": 2
                 },
                 "conditions": [
                   {
-                    "id": "9e9a3407-8315-4412-ae09-835028ff44a0",
-                    "leftValue": "={{ $json.message.text }}",
-                    "rightValue": "تسجيل خروج",
+                    "id": "86344303-aaf3-4a2e-8ad0-eb17c48a5806",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "settings",
                     "operator": {
                       "type": "string",
-                      "operation": "notEquals"
+                      "operation": "equals"
                     }
                   }
                 ],
                 "combinator": "and"
               },
               "renameOutput": true,
-              "outputKey": "Wrong input 2"
+              "outputKey": "settings"
             },
             {
               "conditions": {
@@ -189,632 +191,527 @@
                   "caseSensitive": true,
                   "leftValue": "",
                   "typeValidation": "strict",
-                  "version": 3
+                  "version": 2
                 },
                 "conditions": [
                   {
-                    "id": "0a8a05f3-a7e8-40ce-a88f-02a2aa209cb0",
-                    "leftValue": "={{ $json.message.text }}",
-                    "rightValue": "/start",
+                    "id": "0d8b3663-7cf4-4d35-a41e-07c341047f06",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "timepick",
                     "operator": {
                       "type": "string",
-                      "operation": "notEquals"
+                      "operation": "equals"
                     }
                   }
                 ],
                 "combinator": "and"
-              }
+              },
+              "renameOutput": true,
+              "outputKey": "timepick"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2dc9b760-2235-4386-870f-e9533520b717",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "settime",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "settime"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d9b1ee6a-3edf-4349-bcb4-4e9843f1dae8",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "toggle",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "toggle"
             }
           ]
         },
-        "options": {}
+        "options": {
+          "fallbackOutput": "extra"
+        }
       },
       "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
+      "typeVersion": 3.2,
       "position": [
-        2656,
-        704
+        -2144,
+        976
       ],
-      "id": "ff82615d-9c72-4e0f-9163-e8bfbbd3474e",
-      "name": "Switch2"
+      "id": "373dd788-db9a-42ec-9e99-a2270d2ae683",
+      "name": "Switch Action"
     },
     {
       "parameters": {
-        "pollTimes": {
-          "item": [
-            {
-              "mode": "everyMinute"
-            }
-          ]
-        },
-        "documentId": {
-          "__rl": true,
-          "value": "1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0",
-          "mode": "list",
-          "cachedResultName": "MEA Registration form (Subs)",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1290569502,
-          "mode": "list",
-          "cachedResultName": "Form Responses 1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0/edit#gid=1290569502"
-        },
-        "event": "rowAdded",
-        "options": {}
+        "operation": "executeQuery",
+        "query": "INSERT INTO athkar_users (telegram_id, first_name, username, is_active)\nVALUES ($1::bigint, $2, $3, true)\nON CONFLICT (telegram_id) DO UPDATE SET is_active = true, first_name = EXCLUDED.first_name, username = EXCLUDED.username, updated_at = now()\nRETURNING (xmax = 0) AS is_new, morning_time, evening_time;",
+        "options": {
+          "queryReplacement": "={{ [$json.chat_id, $json.first_name, $json.username] }}"
+        }
       },
-      "type": "n8n-nodes-base.googleSheetsTrigger",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
       "position": [
-        2096,
-        1136
+        -1904,
+        576
       ],
-      "id": "61016799-97cf-49c1-8d26-03aea567582a",
-      "name": "Google Sheets Trigger",
+      "id": "55a9ee26-e7ac-410a-8c53-bfd72cb3edb7",
+      "name": "Register User",
       "credentials": {
-        "googleSheetsTriggerOAuth2Api": {
-          "id": "jCxpFhN1mEh99RfI",
-          "name": "Google Sheets Trigger account"
+        "postgres": {
+          "id": "5yqo03VujEBAnHl4",
+          "name": "Neon Connect"
         }
       }
     },
     {
       "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0",
-          "mode": "list",
-          "cachedResultName": "MEA Registration form (Subs)",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1290569502,
-          "mode": "list",
-          "cachedResultName": "Form Responses 1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0/edit#gid=1290569502"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "الكود السري محادثة",
-              "lookupValue": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const n = $('Normalize').first().json;\nconst pre = n.is_cb ? [{ json: { method: 'answerCallbackQuery', body: { callback_query_id: n.cb_id } } }] : [];\nconst reply = (text, kb) => {\n  const body = { chat_id: n.chat_id, text };\n  if (kb) body.reply_markup = { inline_keyboard: kb };\n  if (n.is_cb) body.message_id = n.message_id;\n  return { json: { method: n.is_cb ? 'editMessageText' : 'sendMessage', body } };\n};\nconst MAIN_KB = [\n  [{ text: '📖 أذكار حصن المسلم', callback_data: 'menu:0' }],\n  [{ text: '⚙️ الإعدادات', callback_data: 'set' }, { text: '❓ المساعدة', callback_data: 'help' }],\n];\nconst HOME_ROW = [{ text: '🏠 الرئيسية', callback_data: 'home' }];const r = $input.first().json;\nconst t = v => String(v || '').slice(0, 5);\nconst text = r.is_new\n  ? `أهلًا ${n.first_name} 👋\\nتم تسجيلك تلقائيًا في بوت الأذكار (الإصدار 2).\\n\\nستصلك أذكار الصباح الساعة ${t(r.morning_time)} والمساء الساعة ${t(r.evening_time)} بتوقيت الرياض، ويمكنك تغيير الأوقات من الإعدادات.\\n\\nاختر من الأزرار:`\n  : `أهلًا بعودتك ${n.first_name} 👋\\nتم تفعيل اشتراكك من جديد.\\n\\nاختر من الأزرار:`;\nreturn [reply(text, MAIN_KB)];"
       },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        3040,
-        496
+        -1680,
+        576
       ],
-      "id": "f55e51ba-be26-4d5b-b0ab-3e64673ca299",
-      "name": "Get row(s) in sheet",
+      "id": "dd80dc76-fede-4b65-b230-d09f0f982d73",
+      "name": "Build Welcome"
+    },
+    {
+      "parameters": {
+        "jsCode": "const n = $('Normalize').first().json;\nconst pre = n.is_cb ? [{ json: { method: 'answerCallbackQuery', body: { callback_query_id: n.cb_id } } }] : [];\nconst reply = (text, kb) => {\n  const body = { chat_id: n.chat_id, text };\n  if (kb) body.reply_markup = { inline_keyboard: kb };\n  if (n.is_cb) body.message_id = n.message_id;\n  return { json: { method: n.is_cb ? 'editMessageText' : 'sendMessage', body } };\n};\nconst MAIN_KB = [\n  [{ text: '📖 أذكار حصن المسلم', callback_data: 'menu:0' }],\n  [{ text: '⚙️ الإعدادات', callback_data: 'set' }, { text: '❓ المساعدة', callback_data: 'help' }],\n  [{ text: '💬 تواصل مع المطوّر', url: 'https://t.me/ContactYazanAlqahtani_bot' }],\n];\nconst HOME_ROW = [{ text: '🏠 الرئيسية', callback_data: 'home' }];return [...pre, reply('🕌 بوت الأذكار — الإصدار 2\\nاختر من الأزرار:', MAIN_KB)];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1904,
+        768
+      ],
+      "id": "e532615d-b413-400c-bdc1-65f4df39156a",
+      "name": "Build Home"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, code, title_ar, count(*) OVER() AS total\nFROM athkar_categories ORDER BY sort_order LIMIT 10 OFFSET ($1::int * 10);",
+        "options": {
+          "queryReplacement": "={{ [$json.arg] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1904,
+        976
+      ],
+      "id": "07cb1d91-84da-4f90-bfe1-894296962fa7",
+      "name": "Get Categories Page",
       "alwaysOutputData": true,
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "Q9bzS6vTpqo0mdbx",
-          "name": "Google Sheets account"
+        "postgres": {
+          "id": "5yqo03VujEBAnHl4",
+          "name": "Neon Connect"
         }
       }
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "02b67f06-42d0-40c2-bc26-6da03cdca44c",
-              "leftValue": "={{ $json['الكود السري محادثة'] }}",
-              "rightValue": 0,
-              "operator": {
-                "type": "number",
-                "operation": "notEmpty",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
+        "jsCode": "const n = $('Normalize').first().json;\nconst pre = n.is_cb ? [{ json: { method: 'answerCallbackQuery', body: { callback_query_id: n.cb_id } } }] : [];\nconst reply = (text, kb) => {\n  const body = { chat_id: n.chat_id, text };\n  if (kb) body.reply_markup = { inline_keyboard: kb };\n  if (n.is_cb) body.message_id = n.message_id;\n  return { json: { method: n.is_cb ? 'editMessageText' : 'sendMessage', body } };\n};\nconst MAIN_KB = [\n  [{ text: '📖 أذكار حصن المسلم', callback_data: 'menu:0' }],\n  [{ text: '⚙️ الإعدادات', callback_data: 'set' }, { text: '❓ المساعدة', callback_data: 'help' }],\n];\nconst HOME_ROW = [{ text: '🏠 الرئيسية', callback_data: 'home' }];const rows = $input.all().map(i => i.json).filter(r => r.id);\nconst page = Number(n.arg) || 0;\nif (!rows.length) return [...pre, reply('لا توجد أبواب في هذه الصفحة.', [HOME_ROW])];\nconst total = Number(rows[0].total);\nconst pages = Math.max(1, Math.ceil(total / 10));\nconst kb = rows.map(r => [{ text: `${r.title_ar} (${r.code})`, callback_data: `cat:${r.id}` }]);\nconst nav = [];\nif (page > 0) nav.push({ text: '◀️ السابق', callback_data: `menu:${page - 1}` });\nif (page < pages - 1) nav.push({ text: 'التالي ▶️', callback_data: `menu:${page + 1}` });\nif (nav.length) kb.push(nav);\nkb.push(HOME_ROW);\nreturn [...pre, reply(`📖 أذكار حصن المسلم\\nالصفحة ${page + 1} من ${pages}\\n\\nاختر بابًا من الأزرار:`, kb)];"
       },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        3264,
-        496
+        -1680,
+        976
       ],
-      "id": "613ed37a-b3a8-4815-a359-d92773e80e35",
-      "name": "If"
+      "id": "2bf2e6b1-f535-4c17-896b-e5b42aa95eb7",
+      "name": "Build Menu"
     },
     {
       "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0",
-          "mode": "list",
-          "cachedResultName": "MEA Registration form (Subs)",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1290569502,
-          "mode": "list",
-          "cachedResultName": "Form Responses 1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0/edit#gid=1290569502"
-        },
-        "filtersUI": {
-          "values": [
+        "operation": "executeQuery",
+        "query": "SELECT c.code AS cat_code, c.title_ar, i.code AS item_code, i.position, i.text_ar, i.repeat_count\nFROM athkar_items i JOIN athkar_categories c ON c.id = i.category_id\nWHERE c.code = upper($1) OR i.code = upper($1)\nORDER BY c.sort_order, i.position;",
+        "options": {
+          "queryReplacement": "={{ [$json.arg] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1904,
+        1168
+      ],
+      "id": "6ed8ab2e-8f58-401c-ba09-927e9236b779",
+      "name": "Get Items",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "5yqo03VujEBAnHl4",
+          "name": "Neon Connect"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const n = $('Normalize').first().json;\nconst pre = n.is_cb ? [{ json: { method: 'answerCallbackQuery', body: { callback_query_id: n.cb_id } } }] : [];\nconst reply = (text, kb) => {\n  const body = { chat_id: n.chat_id, text };\n  if (kb) body.reply_markup = { inline_keyboard: kb };\n  if (n.is_cb) body.message_id = n.message_id;\n  return { json: { method: n.is_cb ? 'editMessageText' : 'sendMessage', body } };\n};\nconst MAIN_KB = [\n  [{ text: '📖 أذكار حصن المسلم', callback_data: 'menu:0' }],\n  [{ text: '⚙️ الإعدادات', callback_data: 'set' }, { text: '❓ المساعدة', callback_data: 'help' }],\n];\nconst HOME_ROW = [{ text: '🏠 الرئيسية', callback_data: 'home' }];const rows = $input.all().map(i => i.json).filter(r => r.item_code);\nconst kb = [[{ text: '📖 الأبواب', callback_data: 'menu:0' }, { text: '🏠 الرئيسية', callback_data: 'home' }]];\nconst send = (text, withKb) => { const body = { chat_id: n.chat_id, text }; if (withKb) body.reply_markup = { inline_keyboard: kb }; return { json: { method: 'sendMessage', body } }; };\nif (!rows.length) return [...pre, send('لم أجد هذا الرمز. افتح قائمة الأبواب من الزر.', true)];\nconst LIMIT = 3500;\nconst blocks = [`📿 ${rows[0].title_ar} (${rows[0].cat_code})`];\nfor (const r of rows) {\n  const rep = Number(r.repeat_count) > 1 ? `\\n(يُكرَّر ${r.repeat_count} مرات)` : '';\n  let t = `【${r.item_code}】\\n${r.text_ar}${rep}`;\n  while (t.length > LIMIT) { blocks.push(t.slice(0, LIMIT)); t = t.slice(LIMIT); }\n  blocks.push(t);\n}\nconst chunks = []; let cur = '';\nfor (const b of blocks) {\n  if (cur && (cur.length + b.length + 2) > LIMIT) { chunks.push(cur); cur = b; }\n  else cur = cur ? cur + '\\n\\n' + b : b;\n}\nif (cur) chunks.push(cur);\nreturn [...pre, ...chunks.map((c, i) => send(c, i === chunks.length - 1))];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1680,
+        1168
+      ],
+      "id": "d52c2529-9a05-425e-b5fa-0f980e5cd41e",
+      "name": "Build Items"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT is_active, morning_time, evening_time FROM athkar_users WHERE telegram_id = $1::bigint;",
+        "options": {
+          "queryReplacement": "={{ [$json.chat_id] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1904,
+        1376
+      ],
+      "id": "f4bea43d-cc14-4fa8-8ea7-e8e5a9d16e78",
+      "name": "Get User Settings",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "5yqo03VujEBAnHl4",
+          "name": "Neon Connect"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const n = $('Normalize').first().json;\nconst pre = n.is_cb ? [{ json: { method: 'answerCallbackQuery', body: { callback_query_id: n.cb_id } } }] : [];\nconst reply = (text, kb) => {\n  const body = { chat_id: n.chat_id, text };\n  if (kb) body.reply_markup = { inline_keyboard: kb };\n  if (n.is_cb) body.message_id = n.message_id;\n  return { json: { method: n.is_cb ? 'editMessageText' : 'sendMessage', body } };\n};\nconst MAIN_KB = [\n  [{ text: '📖 أذكار حصن المسلم', callback_data: 'menu:0' }],\n  [{ text: '⚙️ الإعدادات', callback_data: 'set' }, { text: '❓ المساعدة', callback_data: 'help' }],\n];\nconst HOME_ROW = [{ text: '🏠 الرئيسية', callback_data: 'home' }];const slot = n.arg === 'evening' ? 'evening' : 'morning';\nconst hours = slot === 'morning' ? [3,4,5,6,7,8,9,10,11] : [15,16,17,18,19,20,21,22];\nconst label = h => String(h).padStart(2, '0') + ':00';\nconst btns = hours.map(h => ({ text: label(h), callback_data: `st:${slot}:${String(h).padStart(2, '0')}` }));\nconst kb = [];\nfor (let i = 0; i < btns.length; i += 3) kb.push(btns.slice(i, i + 3));\nkb.push([{ text: '🔙 رجوع', callback_data: 'set' }]);\nreturn [...pre, reply(`${slot === 'morning' ? '☀️ اختر وقت أذكار الصباح' : '🌙 اختر وقت أذكار المساء'} (بتوقيت الرياض):`, kb)];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1904,
+        1568
+      ],
+      "id": "e0eb1e18-7b84-414c-9809-e3d0d532b9dd",
+      "name": "Build Timepicker"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE athkar_users SET\n  morning_time = CASE WHEN $2 = 'morning' THEN $3::time ELSE morning_time END,\n  evening_time = CASE WHEN $2 = 'evening' THEN $3::time ELSE evening_time END,\n  updated_at = now()\nWHERE telegram_id = $1::bigint\nRETURNING is_active, morning_time, evening_time;",
+        "options": {
+          "queryReplacement": "={{ [$json.chat_id, $json.arg.split(':')[0], $json.arg.split(':')[1] + ':00'] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1904,
+        1776
+      ],
+      "id": "75b9f450-68aa-4ae8-b65f-61b4dfb4e824",
+      "name": "Update Time",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "5yqo03VujEBAnHl4",
+          "name": "Neon Connect"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE athkar_users SET is_active = $2::boolean, updated_at = now()\nWHERE telegram_id = $1::bigint\nRETURNING is_active, morning_time, evening_time;",
+        "options": {
+          "queryReplacement": "={{ [$json.chat_id, $json.arg === 'on'] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1904,
+        1984
+      ],
+      "id": "868cd684-6aac-45cc-b873-dddb864df5ff",
+      "name": "Toggle Active",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "5yqo03VujEBAnHl4",
+          "name": "Neon Connect"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const n = $('Normalize').first().json;\nconst pre = n.is_cb ? [{ json: { method: 'answerCallbackQuery', body: { callback_query_id: n.cb_id } } }] : [];\nconst reply = (text, kb) => {\n  const body = { chat_id: n.chat_id, text };\n  if (kb) body.reply_markup = { inline_keyboard: kb };\n  if (n.is_cb) body.message_id = n.message_id;\n  return { json: { method: n.is_cb ? 'editMessageText' : 'sendMessage', body } };\n};\nconst MAIN_KB = [\n  [{ text: '📖 أذكار حصن المسلم', callback_data: 'menu:0' }],\n  [{ text: '⚙️ الإعدادات', callback_data: 'set' }, { text: '❓ المساعدة', callback_data: 'help' }],\n];\nconst HOME_ROW = [{ text: '🏠 الرئيسية', callback_data: 'home' }];const r = $input.first() ? $input.first().json : {};\nif (r.is_active === undefined || r.is_active === null) {\n  return [...pre, reply('لم يتم تسجيلك بعد. اضغط /start للتسجيل.', null)];\n}\nconst t = v => String(v || '').slice(0, 5);\nconst text = `⚙️ الإعدادات\\n\\nالحالة: ${r.is_active ? 'مفعّل ✅' : 'متوقف ⏸'}\\n☀️ أذكار الصباح: ${t(r.morning_time)}\\n🌙 أذكار المساء: ${t(r.evening_time)}\\n(بتوقيت الرياض)`;\nconst kb = [\n  [{ text: '☀️ وقت الصباح', callback_data: 'tm:morning' }, { text: '🌙 وقت المساء', callback_data: 'tm:evening' }],\n  [r.is_active ? { text: '🔕 إيقاف الرسائل', callback_data: 'tg:off' } : { text: '🔔 تفعيل الرسائل', callback_data: 'tg:on' }],\n  HOME_ROW,\n];\nreturn [...pre, reply(text, kb)];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1680,
+        1680
+      ],
+      "id": "fb84b9ab-7402-435e-aeac-8edea03adf57",
+      "name": "Build Settings"
+    },
+    {
+      "parameters": {
+        "jsCode": "const n = $('Normalize').first().json;\nconst pre = n.is_cb ? [{ json: { method: 'answerCallbackQuery', body: { callback_query_id: n.cb_id } } }] : [];\nconst reply = (text, kb) => {\n  const body = { chat_id: n.chat_id, text };\n  if (kb) body.reply_markup = { inline_keyboard: kb };\n  if (n.is_cb) body.message_id = n.message_id;\n  return { json: { method: n.is_cb ? 'editMessageText' : 'sendMessage', body } };\n};\nconst MAIN_KB = [\n  [{ text: '📖 أذكار حصن المسلم', callback_data: 'menu:0' }],\n  [{ text: '⚙️ الإعدادات', callback_data: 'set' }, { text: '❓ المساعدة', callback_data: 'help' }],\n];\nconst HOME_ROW = [{ text: '🏠 الرئيسية', callback_data: 'home' }];const text = 'ما يقدمه البوت:\\n• أذكار الصباح والمساء تلقائيًا في وقتك.\\n• كل أبواب حصن المسلم من زر «أذكار حصن المسلم».\\n• تغيير الأوقات أو إيقاف الرسائل من «الإعدادات».\\n\\nاختصار: اكتب رمز باب مثل C027 أو ذكر مثل C027-3.';\nreturn [...pre, reply(text + '\\n\\nلأي مشكلة أو اقتراح تواصل معي من الزر أدناه.', [[{ text: '💬 تواصل مع المطوّر', url: 'https://t.me/ContactYazanAlqahtani_bot' }], HOME_ROW])];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1904,
+        2176
+      ],
+      "id": "59033647-89ce-47c4-bfa1-3087de877bec",
+      "name": "Build Help"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $('Config').first().json.bot_token }}/{{ $json.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 350
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1312,
+        1280
+      ],
+      "id": "18049592-ef22-4324-b19e-2f837f491dbc",
+      "name": "Telegram Send",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
             {
-              "lookupColumn": "الكود السري محادثة",
-              "lookupValue": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2816,
+        2512
+      ],
+      "id": "8a3c8632-eb7e-46be-9ab2-78b2f2d58231",
+      "name": "Every 15 Minutes"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT u.id AS user_id, u.telegram_id, s.slot, c.id AS category_id\nFROM athkar_users u\nCROSS JOIN LATERAL (VALUES ('morning', u.morning_time), ('evening', u.evening_time)) AS s(slot, t)\nJOIN athkar_categories c ON c.slug = 'morning_evening'\nWHERE u.is_active\n  AND (now() AT TIME ZONE u.timezone)::time >= s.t\n  AND (now() AT TIME ZONE u.timezone)::time < s.t + interval '2 hours'\n  AND NOT EXISTS (\n    SELECT 1 FROM athkar_send_log l\n    WHERE l.user_id = u.id AND l.category_id = c.id AND l.slot = s.slot\n      AND l.sent_on = (now() AT TIME ZONE u.timezone)::date\n  );",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -2384,
+        2512
+      ],
+      "id": "6fe4d23f-dc85-4918-8cb5-b8e67470ab8f",
+      "name": "Get Due Users",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "5yqo03VujEBAnHl4",
+          "name": "Neon Connect"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT i.code AS item_code, i.text_ar, i.repeat_count\nFROM athkar_items i JOIN athkar_categories c ON c.id = i.category_id\nWHERE c.slug = 'morning_evening' ORDER BY i.position;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -2144,
+        2512
+      ],
+      "id": "0070e318-1daa-4dfc-bf55-2dd79df1e291",
+      "name": "Get Morning Evening Items",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "5yqo03VujEBAnHl4",
+          "name": "Neon Connect"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const users = $('Get Due Users').all().map(i => i.json).filter(u => u.user_id);\nconst items = $input.all().map(i => i.json).filter(r => r.item_code);\nif (!users.length || !items.length) return [];\nconst LIMIT = 3500;\nconst mk = slot => {\n  const blocks = [slot === 'morning' ? '🌅 أذكار الصباح' : '🌙 أذكار المساء'];\n  for (const r of items) {\n    const rep = Number(r.repeat_count) > 1 ? `\\n(يُكرَّر ${r.repeat_count} مرات)` : '';\n    let t = `【${r.item_code}】\\n${r.text_ar}${rep}`;\n    while (t.length > LIMIT) { blocks.push(t.slice(0, LIMIT)); t = t.slice(LIMIT); }\n    blocks.push(t);\n  }\n  const chunks = []; let cur = '';\n  for (const b of blocks) {\n    if (cur && (cur.length + b.length + 2) > LIMIT) { chunks.push(cur); cur = b; }\n    else cur = cur ? cur + '\\n\\n' + b : b;\n  }\n  if (cur) chunks.push(cur);\n  return chunks;\n};\nconst cache = {};\nconst out = [];\nfor (const u of users) {\n  cache[u.slot] = cache[u.slot] || mk(u.slot);\n  const ch = cache[u.slot];\n  ch.forEach((text, i) => out.push({ json: { user_id: u.user_id, category_id: u.category_id, slot: u.slot, chat_id: u.telegram_id, text, last: i === ch.length - 1 } }));\n}\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1920,
+        2512
+      ],
+      "id": "92e38eac-29d9-4612-a1a0-c9746a50c066",
+      "name": "Build Messages"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO athkar_send_log (user_id, category_id, slot, sent_on)\nSELECT id, $2::int, $3, (now() AT TIME ZONE timezone)::date\nFROM athkar_users WHERE id = $1::uuid AND $4::boolean\nON CONFLICT DO NOTHING;",
+        "options": {
+          "queryReplacement": "={{ [$('Build Messages').item.json.user_id, $('Build Messages').item.json.category_id, $('Build Messages').item.json.slot, $json.ok === true] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1440,
+        2512
+      ],
+      "id": "cf994c3b-f54b-4998-9a8c-5ea5087620cc",
+      "name": "Log Sent",
+      "credentials": {
+        "postgres": {
+          "id": "5yqo03VujEBAnHl4",
+          "name": "Neon Connect"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3e7365a6-130c-4710-ae78-2b22537d7f79",
+              "name": "bot_token",
+              "value": "8622196701:AAGsrg4ywjJYVM_gbbjqxO-XzhDLjVzn5jQ",
+              "type": "string"
             }
           ]
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
       "position": [
-        912,
-        672
+        -2592,
+        2512
       ],
-      "id": "231ac6b8-8964-49d1-87cc-fd62e5597e22",
-      "name": "Get row(s) in sheet1",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "Q9bzS6vTpqo0mdbx",
-          "name": "Google Sheets account"
-        }
-      }
+      "id": "57475f34-9809-4448-8767-61e6fdfbdaf3",
+      "name": "Config1"
     },
     {
       "parameters": {
-        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
-        "text": "=عفواً، لقد قمت بالتسجيل مسبقاً! ستصلك الأذكار كالمعتاد",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        3600,
-        480
-      ],
-      "id": "fe948f0a-20d9-4299-89b5-75ad893f7cf7",
-      "name": "Error Message",
-      "webhookId": "ddc96d68-23b3-456c-bff3-5643b314f6b3",
-      "executeOnce": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "XaQLf9FmZtg24QbP",
-          "name": "Telegram account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
-        "text": "الرجاء الانتظار, جاري تجهيز الرابط.",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        3600,
-        688
-      ],
-      "id": "c70aa98c-772d-4704-ab4f-06e3965c5468",
-      "name": "Wait Message",
-      "webhookId": "ddc96d68-23b3-456c-bff3-5643b314f6b3",
-      "executeOnce": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "XaQLf9FmZtg24QbP",
-          "name": "Telegram account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
-        "text": "=تفضل بالدخول لهذا الرابط لتسجيل بياناتك\n[ https://forms.gle/vhmVksLNaVYnAfrFA ],\nالرجاء إدخال المعلومات اللازمة\nمع كود المحادثة الظاهر أمامك [ {{ $('Telegram Trigger').item.json.message.chat.id }} ]",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        3824,
-        688
-      ],
-      "id": "4ebeb3a4-09f4-4b92-b581-bf7d10e954ea",
-      "name": "Google form message",
-      "webhookId": "ddc96d68-23b3-456c-bff3-5643b314f6b3",
-      "executeOnce": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "XaQLf9FmZtg24QbP",
-          "name": "Telegram account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
-        "text": "=مدخل خاطئ،\nالرجاء إدخال لتسجيل الدخول:\nتسجيل دخول\n\nولتسجيل الخروج:\nتسجيل خروج\n\nولعرض الأذكار:\nعرض الأذكار\n\nولعرض تكبيرات العيد:\nتكبيرات العيد",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        3024,
-        1104
-      ],
-      "id": "18029d4d-0edd-475f-b3bc-1369b36aaed6",
-      "name": "Wrong input message",
-      "webhookId": "fc404619-602e-40b8-9de9-c8c8a4cfbaf7",
-      "executeOnce": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "XaQLf9FmZtg24QbP",
-          "name": "Telegram account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $json['الكود السري محادثة'] }}",
-        "text": "=مرحبُا بك {{ $json['االاسم الأول'] }} {{ $json['الاسم الاخير'] }} تم تسجيلك بنجاح!\nستأتي لك رسالة الأذكار كل يوم الساعة 6 صباح/مساءً",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        2304,
-        1136
-      ],
-      "id": "e614bb18-9459-416b-8676-8cde5a9c7cb1",
-      "name": "Greeting message",
-      "webhookId": "c2b50b5b-c4ea-4029-b9d9-b961989923c7",
-      "executeOnce": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "XaQLf9FmZtg24QbP",
-          "name": "Telegram account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0",
-          "mode": "list",
-          "cachedResultName": "MEA Registration form (Subs)",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1290569502,
-          "mode": "list",
-          "cachedResultName": "Form Responses 1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0/edit#gid=1290569502"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "الكود السري محادثة",
-              "lookupValue": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $('Config1').first().json.bot_token }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $json.chat_id, text: $json.text, reply_markup: $json.last ? { inline_keyboard: [[{ text: '📖 أذكار حصن المسلم', callback_data: 'menu:0' }, { text: '⚙️ الإعدادات', callback_data: 'set' }]] } : undefined }) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 100
             }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        3040,
-        720
-      ],
-      "id": "5ac51d12-e1d5-441b-abdf-7ed7ac6d1a28",
-      "name": "Get row(s) in sheet2",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "Q9bzS6vTpqo0mdbx",
-          "name": "Google Sheets account"
+          }
         }
-      }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1648,
+        2512
+      ],
+      "id": "199912ad-41cf-42ff-b307-53e2c824df8b",
+      "name": "Telegram Send1",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "operation": "delete",
-        "documentId": {
-          "__rl": true,
-          "value": "1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0",
-          "mode": "list",
-          "cachedResultName": "MEA Registration form (Subs)",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 546022462,
-          "mode": "list",
-          "cachedResultName": "Form Responses 1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1PaJuxfsmR3vijBwnTzT8mVgklNVVTyLJRpkvx8QRtd4/edit#gid=546022462"
-        },
-        "startIndex": "={{ $json.row_number }}"
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        3264,
-        720
-      ],
-      "id": "a250bb89-ca73-4079-be04-e732479e9ba0",
-      "name": "Delete rows or columns from sheet",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "Q9bzS6vTpqo0mdbx",
-          "name": "Google Sheets account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
-        "text": "تم تسجيل خروجك بنجاح، ولن تصلك رسائل الأذكار بعد الآن. نتمنى لك التوفيق!",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        3600,
-        864
-      ],
-      "id": "4d7b1e84-d07f-4c6e-8b83-ab884739fca6",
-      "name": "Logout message",
-      "webhookId": "8d66b08d-2627-43ac-a6d6-0dcca0c4bdc1",
-      "retryOnFail": false,
-      "executeOnce": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "XaQLf9FmZtg24QbP",
-          "name": "Telegram account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "content": "## Update Messages flow",
-        "height": 256,
-        "width": 640
+        "content": "## 1st Workflow\n",
+        "height": 1856,
+        "width": 1904
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1360,
-        976
+        -2896,
+        480
       ],
       "typeVersion": 1,
-      "id": "13a5c12f-83ae-4ffb-95c9-12afb7fa89d8",
+      "id": "1cec7bac-a90e-4db8-8e58-f7f84289c6c1",
       "name": "Sticky Note"
     },
     {
       "parameters": {
-        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
-        "text": "=أهلًا بك في بوت أذكار الصباح والمساء (MEA)!\nهذا البوت ميزته الأساسية هو انه يسهل لك الإلتزام بالأذكار لذا البوت رح يرسل رسائل تلقائية للأذكار كل يوم (الساعة 6 صباح/مساء),\nفإيش تنتظر وإبدأ تجربتك مع البوت.\nللتسجيل اكتب:  تسجيل دخول",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        3024,
-        912
-      ],
-      "id": "70f4b574-77e1-480f-9705-ef839c543f61",
-      "name": "/start message",
-      "webhookId": "2948153c-c2a9-4e11-a5e7-61e04186d606",
-      "executeOnce": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "XaQLf9FmZtg24QbP",
-          "name": "Telegram account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0",
-          "mode": "list",
-          "cachedResultName": "MEA Registration form (Subs)",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1290569502,
-          "mode": "list",
-          "cachedResultName": "Form Responses 1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0/edit#gid=1290569502"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1600,
-        1056
-      ],
-      "id": "f25f114c-8a49-4fa9-b7df-e81110643584",
-      "name": "Get row(s) in sheet6",
-      "alwaysOutputData": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "Q9bzS6vTpqo0mdbx",
-          "name": "Google Sheets account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $json['الكود السري محادثة'] }}",
-        "text": "={{ $('When chat message received').item.json.chatInput }}",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        1792,
-        1056
-      ],
-      "id": "35339751-3175-4a6d-a2f5-90ce36b1d343",
-      "name": "Send a text message",
-      "webhookId": "23bac482-70d3-4547-ac12-45853e80f9d4",
-      "executeOnce": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "XaQLf9FmZtg24QbP",
-          "name": "Telegram account 2"
-        }
-      },
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
-        "content": "## قالب:\nالسلام عليكم ورحمة الله وبركاته,\nكيف حالك مستخدمنا الغالي؟ \nنطور ونحسن من أجلك لذا رح نعلمك بتحديث صار للبرنامج (MEA (رقم الاصدار الجديد)) ويشمل هذه التحسينات:\n1- .....\n2- .....\nمع خالص التقدير,\nيزن القحطاني.",
-        "height": 256
+        "content": "## 2nd Workflow",
+        "height": 304,
+        "width": 1648,
+        "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1360,
-        1264
+        -2896,
+        2384
       ],
       "typeVersion": 1,
-      "id": "6263242d-80d8-4915-b7f2-07c6a9aa0019",
-      "name": "Sticky Note3"
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Get row(s) in sheet1').item.json['الكود السري محادثة'] }}",
-        "text": "=ابدأ صباحك واختم يومك بهذه الأذكار:\n\n**1. قراءة آية الكرسي**  \n(أَعُوذُ بِاللَّهِ مِنَ الشَّيطَانِ الرَّجِيمِ) {اللّهُ لاَ إِلَـهَ إِلاَّ هُوَ الْحَيُّ الْقَيُّومُ لاَ تَأْخُذُهُ سِنَةٌ وَلاَ نَوْمٌ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الأَرْضِ مَن ذَا الَّذِي يَشْفَعُ عِنْدَهُ إِلاَّ بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ وَلاَ يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلاَّ بِمَا شَاء وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالأَرْضَ وَلاَ يَؤُودُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيمُ}. (مرة واحدة)\n\n**2. قراءة المعوذات**  \n- سورة الإخلاص: {قُلْ هُوَ اللَّهُ أَحَدٌ...}  \n- سورة الفلق: {قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ...}  \n- سورة الناس: {قُلْ أَعُوذُ بِرَبِّ النَّاسِ...}  \n(ثلاث مرات لكل سورة)\n\n**3. أصبحنا وأصبح الملك لله (وفي المساء: أمسينا وأمسى الملك لله)**  \n\"أَصْبَحْنَا وَأَصْبَحَ المُلْكُ لِلَّهِ (وفي المساء: أَمْسَيْنَا وَأَمْسَى المُلْكُ لِلَّهِ) وَالحَمْدُ لِلَّهِ، لاَ إِلَهَ إلاَّ اللَّهُ وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ المُلْكُ وَلَهُ الحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذَا اليَوْمِ (وفي المساء: هَذِهِ اللَّيْلَةِ) وَخَيْرَ مَا بَعْدَهُ (بَعْدَهَا)، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذَا اليَوْمِ (هَذِهِ اللَّيْلَةِ) وَشَرِّ مَا بَعْدَهُ (بَعْدَهَا)، رَبِّ أَعُوذُ بِكَ مِنَ الكَسَلِ وَسُوءِ الكِبَرِ، رَبِّ أَعُوذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَعَذَابٍ فِي القَبْرِ.\" (مرة واحدة)\n\n**4. سيد الاستغفار**  \n\"اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلاَّ أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لاَ يَغْفِرُ الذُّنوبَ إِلاَّ أَنْتَ.\" (مرة واحدة)\n\n",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        1296,
-        624
-      ],
-      "id": "a4e03c4a-9b57-41e3-bbeb-6361948524a7",
-      "name": "رسالة الأذكار",
-      "webhookId": "7a431816-ac2a-472d-97a0-3f7e39db3635",
-      "executeOnce": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "XaQLf9FmZtg24QbP",
-          "name": "Telegram account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $json['الكود السري محادثة'] }}",
-        "text": "=من فضائل الأذكار:\n1- قال ﷺ: \"مثل الذي يذكر ربه والّذي لا يذكر ربه, مثل  الحي والميت\".\n2- قال ﷺ: \"ألا أنبئكم بخير أعمالكم، وأزكاها عند مليككم، وأرفعها في درجاتكم، وخير لكم من إنفاق الذهب والورق، وخير لكم من أن تلقوا عدوكم فتضربوا أعناقهم ويضربوا أعناقكم؟ قالوا بلى. قال: ذكر الله تعالى\"",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        1104,
-        624
-      ],
-      "id": "9ccd07d8-23b3-4ff6-809d-f22c7d92905a",
-      "name": "فضل الأذكار",
-      "webhookId": "7a431816-ac2a-472d-97a0-3f7e39db3635",
-      "executeOnce": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "XaQLf9FmZtg24QbP",
-          "name": "Telegram account 2"
-        }
-      },
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
-        "updates": [
-          "message"
-        ],
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegramTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        2112,
-        752
-      ],
-      "id": "122fc70e-3175-49ae-a804-f00b9b0b5098",
-      "name": "Telegram Trigger",
-      "webhookId": "d93ce230-fa55-4380-8ba6-f244e4e3387d",
-      "credentials": {
-        "telegramApi": {
-          "id": "XaQLf9FmZtg24QbP",
-          "name": "Telegram account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Get row(s) in sheet1').item.json['الكود السري محادثة'] }}",
-        "text": "=**5. رضيت بالله رباً**  \n\"رَضِيتُ بِاللَّهِ رَبَّاً، وَبِالْإِسْلَامِ دِيناً، وَبِمُحَمَّدٍ صلى الله عليه وسلم نَبِيّاً.\" (ثلاث مرات)\n\n**6. اللهم إني أصبحت أشهدك (وفي المساء: اللهم إني أمسيت)**  \n\"اللَّهُمَّ إِنِّي أَصْبَحْتُ أُشْهِدُكَ (وفي المساء: اللَّهُمَّ إِنِّي أَمْسَيْتُ أُشْهِدُكَ)، وَأُشْهِدُ حَمَلَةَ عَرْشِكَ، وَمَلاَئِكَتِكَ، وَجَمِيعَ خَلْقِكَ، أَنَّكَ أَنْتَ اللَّهُ لَا إِلَهَ إِلاَّ أَنْتَ وَحْدَكَ لاَ شَرِيكَ لَكَ، وَأَنَّ مُحَمَّداً عَبْدُكَ وَرَسُولُكَ.\" (أربع مرات)\n\n**7. اللهم ما أصبح بي من نعمة (وفي المساء: اللهم ما أمسى)**  \n\"اللَّهُمَّ مَا أَصْبَحَ بِي مِنْ نِعْمَةٍ (وفي المساء: مَا أَمْسَى بِي مِنْ نِعْمَةٍ) أَوْ بِأَحَدٍ مِنْ خَلْقِكَ، فَمِنْكَ وَحْدَكَ لاَ شَرِيكَ لَكَ، فَلَكَ الْحَمْدُ وَلَكَ الشُّكْرُ.\" (مرة واحدة)\n\n**8. حسبي الله**  \n\"حَسْبِيَ اللَّهُ لاَ إِلَهَ إِلاَّ هُوَ عَلَيهِ تَوَكَّلْتُ وَهُوَ رَبُّ العَرْشِ العَظِيمِ.\" (سبع مرات)\n\n**9. بسم الله الذي لا يضر مع اسمه شيء**  \n\"بِسْمِ اللَّهِ الَّذِي لاَ يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الأَرْضِ وَلاَ فِي السّمَاءِ وَهُوَ السَّمِيعُ العَلِيمُ.\" (ثلاث مرات)\n\n**10. اللهم بك أصبحنا (وفي المساء: اللهم بك أمسينا)**  \n- في الصباح: \"اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ وَإِلَيْكَ النُّشُورُ.\"  \n- في المساء: \"اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ وَإِلَيْكَ الْمَصِيرُ.\" (مرة واحدة)\n\n",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        1504,
-        624
-      ],
-      "id": "b76cff1e-8106-421b-bef9-d32cc82c2a6f",
-      "name": "رسالة الأذكار 2",
-      "webhookId": "7a431816-ac2a-472d-97a0-3f7e39db3635",
-      "executeOnce": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "XaQLf9FmZtg24QbP",
-          "name": "Telegram account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Get row(s) in sheet1').item.json['الكود السري محادثة'] }}",
-        "text": "=**11. أصبحنا على فطرة الإسلام (وفي المساء: أمسينا)**  \n\"أَصْبَحْنَا عَلَى فِطْرَةِ الإِسْلاَمِ (وفي المساء: أَمْسَيْنَا عَلَى فِطْرَةِ الإِسْلاَمِ)، وَعَلَى كَلِمَةِ الإِخْلاَصِ، وَعَلَى دِينِ نَبِيِّنَا مُحَمَّدٍ صلى الله عليه وسلم، وَعَلَى مِلَّةِ أَبِينَا إِبْرَاهِيمَ حَنِيفاً مُسْلِماً وَمَا كَانَ مِنَ المُشْرِكِينَ.\" (مرة واحدة)\n\n**12. اللهم عافني في بدني**  \n\"اللَّهُمَّ عَافِنِي فِي بَدَنِي، اللَّهُمَّ عَافِنِي فِي سَمْعِي، اللَّهُمَّ عَافِنِي فِي بَصَرِي، لاَ إِلَهَ إِلاَّ أَنْتَ. اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الكُفْرِ، وَالفَقْرِ، وَأَعُوذُ بِكَ مِنْ عَذَابِ القَبْرِ، لاَ إِلَهَ إِلاَّ أَنْتَ.\" (ثلاث مرات)\n\n**13. اللهم إني أسألك العفو والعافية**  \n\"اللَّهُمَّ إِنِّي أَسْأَلُكَ العَفْوَ وَالعَافِيَةَ فِي الدُّنْيَا وَالآخِرَةِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ العَفْوَ وَالعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي، اللَّهُمَّ اسْتُرْ عَوْرَاتِي وَآمِنْ رَوْعَاتِي، اللَّهُمَّ احْفَظْنِي مِنْ بَيْنِ يَدَيَّ، وَمِنْ خَلْفِي، وَعَنْ يَمِينِي، وَعَنْ شِمَالِي، وَمِنْ فَوْقِي، وَأَعُوذُ بِعَظَمَتِكَ أَنْ أُغْتَالَ مِنْ تَحْتِي.\" (مرة واحدة)\n\n**14. اللهم عالم الغيب والشهادة**  \n\"اللَّهُمَّ عَالِمَ الغَيْبِ وَالشَّهَادَةِ فَاطِرَ السَّمَاوَاتِ وَالأَرْضِ، رَبَّ كُلِّ شَيْءٍ وَمَلِيكَهُ، أَشْهَدُ أَنْ لاَ إِلَهَ إِلاَّ أَنْتَ، أَعُوذُ بِكَ مِنْ شَرِّ نَفْسِي، وَمِنْ شَرِّ الشَّيْطَانِ وَشِرْكِهِ، وَأَنْ أَقْتَرِفَ عَلَى نَفْسِي سُوءاً أَوْ أَجُرَّهُ إِلَى مُسْلِمٍ.\" (مرة واحدة)\n\n**15. يا حي يا قيوم**  \n\"يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ أَصْلِحْ لِي شَأْنِي كُلَّهُ وَلاَ تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ.\" (مرة واحدة)\n\n**16. سبحان الله وبحمده**  \n\"سُبْحَانَ اللَّهِ وَبِحَمْدِهِ.\" (مئة مرة)\n\n**17. لا إله إلا الله وحده لا شريك له**  \n\"لاَ إِلَهَ إِلاَّ اللَّهُ وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ المُلْكُ وَلَهُ الحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ.\" (عشر مرات، أو مرة واحدة عند الكسل، أو مئة مرة في اليوم)\n\n**18. سبحان الله وبحمده (للصباح فقط)**  \n\"سُبْحَانَ اللَّهِ وَبِحَمْدِهِ: عَدَدَ خَلْقِهِ، وَرِضَا نَفْسِهِ، وَزِنَةَ عَرْشِهِ، وَمِدَادَ كَلِمَاتِهِ.\" (ثلاث مرات إذا أصبح)\n\n**19. اللهم إني أسألك علماً نافعاً (للصباح فقط)**  \n\"اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْماً نَافِعاً، وَرِزْقاً طَيِّباً، وَعَمَلاً مُتَقَبَّلاً.\" (مرة واحدة إذا أصبح)\n\n**20. أعوذ بكلمات الله التامات (للمساء فقط)**  \n\"أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ.\" (ثلاث مرات إذا أمسى)\n\n**21. الاستغفار**  \n\"أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ.\" (مائة مرة في اليوم)\n\n**22. الصلاة على النبي**  \n\"اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبَيِّنَا مُحَمَّدٍ.\" (عشر مرات)",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        1696,
-        624
-      ],
-      "id": "c0183e32-1bb1-438b-99ae-aa5559ef14a7",
-      "name": "رسالة الأذكار 3",
-      "webhookId": "7a431816-ac2a-472d-97a0-3f7e39db3635",
-      "executeOnce": true,
-      "credentials": {
-        "telegramApi": {
-          "id": "XaQLf9FmZtg24QbP",
-          "name": "Telegram account 2"
-        }
-      }
+      "id": "dd0256c3-91cb-421e-b492-e9c0600b0895",
+      "name": "Sticky Note1"
     },
     {
       "parameters": {
@@ -823,388 +720,459 @@
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.4,
       "position": [
-        1408,
-        1056
+        -2816,
+        3184
       ],
-      "id": "12dd33d2-51f5-4435-8152-8db511d136ee",
+      "id": "b083caa0-3c2a-430d-91c6-382de6e5615d",
       "name": "When chat message received",
-      "webhookId": "b47508c0-216f-49c4-b78b-1285d61549da"
+      "webhookId": "9c921438-dd0b-4fa3-99b8-5df735165ebd"
     },
     {
       "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.message.text }}",
-                    "rightValue": "عرض الأذكار",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "7ff7c949-1ecf-44d1-8f8d-2d54d9fbde39"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Show Athkar"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "8b7e1950-0336-458e-8e1e-599a9c0828a9",
-                    "leftValue": "={{ $json.message.text }}",
-                    "rightValue": "تكبيرات العيد",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Eid Takber"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "bd30db8f-08bb-42a4-9dda-0295510ba408",
-                    "leftValue": "={{ $json.message.text }}",
-                    "rightValue": "عرض الأذكار",
-                    "operator": {
-                      "type": "string",
-                      "operation": "notEquals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Else1"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "3599dc28-3870-4a25-8c6e-d5514be9af0b",
-                    "leftValue": "={{ $json.message.text }}",
-                    "rightValue": "تكبيرات العيد",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Else2"
-            }
-          ]
-        },
+        "operation": "executeQuery",
+        "query": "SELECT telegram_id FROM athkar_users WHERE is_active = true ORDER BY created_at;",
         "options": {}
       },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
       "position": [
-        2320,
-        720
+        -2592,
+        3184
       ],
-      "id": "48a1bb52-7038-4e9a-99bd-7b828c8c48ae",
-      "name": "Switch"
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0",
-          "mode": "list",
-          "cachedResultName": "MEA Registration form (Subs)",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1290569502,
-          "mode": "list",
-          "cachedResultName": "Form Responses 1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0/edit#gid=1290569502"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "الكود السري محادثة",
-              "lookupValue": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        752,
-        1056
-      ],
-      "id": "c80155fb-8c91-4361-afc7-8ad0bcc36f2c",
-      "name": "Get row(s) in sheet3",
+      "id": "cc795ec3-1a61-40f0-b31f-eff1d7cb4f62",
+      "name": "Get Active Users",
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "Q9bzS6vTpqo0mdbx",
-          "name": "Google Sheets account"
+        "postgres": {
+          "id": "5yqo03VujEBAnHl4",
+          "name": "Neon Connect"
         }
       }
     },
     {
       "parameters": {
-        "content": "## Eid Takber",
-        "height": 256,
-        "width": 672
+        "batchSize": 20,
+        "options": {}
       },
-      "type": "n8n-nodes-base.stickyNote",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
       "position": [
-        672,
-        976
+        -2368,
+        3184
       ],
-      "typeVersion": 1,
-      "id": "11ca1e78-9e9f-462c-a288-f6f9c7fe46fc",
-      "name": "Sticky Note4"
+      "id": "f780987a-3779-46de-b337-4d89b8effb14",
+      "name": "Loop Over Items"
     },
     {
       "parameters": {
-        "chatId": "={{ $json['الكود السري محادثة'] }}",
-        "text": "=صيغة التكبير:\nالله أكبر الله أكبر لا إله إلا الله، الله أكبر الله أكبر ولله الحمد، أو يثلِّث: الله أكبر الله أكبر الله أكبر لا إله إلا الله، الله أكبر الله أكبر الله أكبر ولله الحمد، ومثله: الله أكبر كبيرًا، والحمد لله كثيرًا، وسبحان الله بكرة وأصيلًا\n\nتفاصيل مهمة:\nكل هذا مشروع في عيد الفطر بعد غروب الشمس إلى الفراغ من الخطبة، وفي الأضحى من دخول شهر ذي الحجة إلى نهاية أيام التشريق، ثلاثة عشر يومًا، من أول ذي الحجة إلى غروب الشمس من اليوم الثالث عشر، كله محل تكبير.\n\nولكن في أيام التشريق، وفي يوم عرفة، والعيد، يكون فيه التكبير المطلق، والمقيد أدبار الصلوات، والمطلق في جميع الأوقات، في يوم عرفة، ويوم النحر، وأيام التشريق الثلاثة، يجتمع فيها المطلق، والمقيد، أما ما قبل عرفة فهو مطلق في الليل والنهار، هذا هو السنة.\n\nأما التكبير الجماعي فهو غير مشروع بدعة، كونهم يتكلمون بصوت واحد، هذا بدعة غير مشروع.\n- موقع الشيخ عبد العزيز بن باز",
-        "additionalFields": {}
+        "chatId": "={{ $json.telegram_id }}",
+        "text": "={{ $('When chat message received').first().json.chatInput }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        944,
-        1056
+        -2144,
+        3280
       ],
-      "id": "e1b95f36-900d-498d-b9ed-2d5456ba970c",
-      "name": "تكبيرات العيد",
-      "webhookId": "7a431816-ac2a-472d-97a0-3f7e39db3635",
-      "executeOnce": true,
+      "id": "48334f08-2c7e-4899-9beb-301e85cd6b44",
+      "name": "Send a text message",
+      "webhookId": "6ead1223-1120-4175-9bc6-deaccfcc6f2f",
       "credentials": {
         "telegramApi": {
           "id": "XaQLf9FmZtg24QbP",
-          "name": "Telegram account 2"
+          "name": "Athkar bot"
         }
       },
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0",
-          "mode": "list",
-          "cachedResultName": "MEA Registration form (Subs)",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1290569502,
-          "mode": "list",
-          "cachedResultName": "Form Responses 1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZUNjOS_mK2nrQYfl3fFuUpi8Z8NIrfU7MZvNDNMMs_0/edit#gid=1290569502"
-        },
-        "filtersUI": {
-          "values": []
-        },
-        "options": {}
+        "amount": 1
       },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
       "position": [
-        1072,
-        448
+        -1920,
+        3280
       ],
-      "id": "26a0818a-9997-4016-a1c9-189fec8524c1",
-      "name": "Get row(s) in sheet4",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "Q9bzS6vTpqo0mdbx",
-          "name": "Google Sheets account"
-        }
-      }
+      "id": "e8de4da6-b5b4-439b-8ab4-fef104d934c5",
+      "name": "Wait",
+      "webhookId": "1109e871-a383-44a3-84c0-7ca96786246e"
+    },
+    {
+      "parameters": {
+        "jsCode": "const total = $('Get Active Users').all().length;\nreturn [{ json: { output: `انتهى الإرسال ✅ عدد المستخدمين المستهدفين: ${total}` } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2144,
+        3088
+      ],
+      "id": "92078476-ae49-4148-9d1e-e2bc345699c4",
+      "name": "Summary"
+    },
+    {
+      "parameters": {
+        "content": "## Broadcast Messages flow\nاكتب الرسالة في نافذة الدردشة (Open chat) وستصل لكل المستخدمين المفعّلين.\n\n### قالب:\nالسلام عليكم ورحمة الله وبركاته،\nنعلمكم بتحديث جديد لبوت الأذكار (الإصدار ...) ويشمل:\n1- ...\n2- ...\nمع خالص التقدير.\n\n⚠️ كل رسالة تكتبها هنا تُرسل فورًا للجميع. الحد الأقصى 4096 حرفًا.",
+        "height": 768,
+        "width": 1168,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2896,
+        2752
+      ],
+      "id": "5cee71e4-17e0-4431-9090-aa402c8455e6",
+      "name": "Sticky Note3"
     }
   ],
   "pinData": {},
   "connections": {
-    "Schedule Trigger": {
+    "Telegram Trigger": {
       "main": [
         [
           {
-            "node": "Get row(s) in sheet4",
+            "node": "Config",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Switch2": {
+    "Config": {
       "main": [
         [
           {
-            "node": "Get row(s) in sheet",
+            "node": "Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize": {
+      "main": [
+        [
+          {
+            "node": "Switch Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Register User": {
+      "main": [
+        [
+          {
+            "node": "Build Welcome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Welcome": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Home": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Categories Page": {
+      "main": [
+        [
+          {
+            "node": "Build Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Menu": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Items": {
+      "main": [
+        [
+          {
+            "node": "Build Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Items": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User Settings": {
+      "main": [
+        [
+          {
+            "node": "Build Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Time": {
+      "main": [
+        [
+          {
+            "node": "Build Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Toggle Active": {
+      "main": [
+        [
+          {
+            "node": "Build Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Settings": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Timepicker": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Help": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Action": {
+      "main": [
+        [
+          {
+            "node": "Register User",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Get row(s) in sheet2",
+            "node": "Build Home",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "/start message",
+            "node": "Get Categories Page",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Wrong input message",
+            "node": "Get Items",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Wrong input message",
+            "node": "Get User Settings",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Wrong input message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Google Sheets Trigger": {
-      "main": [
-        [
-          {
-            "node": "Greeting message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get row(s) in sheet": {
-      "main": [
-        [
-          {
-            "node": "If",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If": {
-      "main": [
-        [
-          {
-            "node": "Error Message",
+            "node": "Build Timepicker",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Wait Message",
+            "node": "Update Time",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Toggle Active",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Help",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get row(s) in sheet1": {
+    "Every 15 Minutes": {
       "main": [
         [
           {
-            "node": "فضل الأذكار",
+            "node": "Config1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Wait Message": {
+    "Get Due Users": {
       "main": [
         [
           {
-            "node": "Google form message",
+            "node": "Get Morning Evening Items",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get row(s) in sheet2": {
+    "Get Morning Evening Items": {
       "main": [
         [
           {
-            "node": "Delete rows or columns from sheet",
+            "node": "Build Messages",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Delete rows or columns from sheet": {
+    "Build Messages": {
       "main": [
         [
           {
-            "node": "Logout message",
+            "node": "Telegram Send1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get row(s) in sheet6": {
+    "Config1": {
       "main": [
+        [
+          {
+            "node": "Get Due Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Send1": {
+      "main": [
+        [
+          {
+            "node": "Log Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Get Active Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Active Users": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Send a text message",
@@ -1214,114 +1182,22 @@
         ]
       ]
     },
-    "فضل الأذكار": {
+    "Send a text message": {
       "main": [
         [
           {
-            "node": "رسالة الأذكار",
+            "node": "Wait",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Telegram Trigger": {
+    "Wait": {
       "main": [
         [
           {
-            "node": "Switch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "رسالة الأذكار": {
-      "main": [
-        [
-          {
-            "node": "رسالة الأذكار 2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "رسالة الأذكار 2": {
-      "main": [
-        [
-          {
-            "node": "رسالة الأذكار 3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "رسالة الأذكار 3": {
-      "main": [
-        []
-      ]
-    },
-    "When chat message received": {
-      "main": [
-        [
-          {
-            "node": "Get row(s) in sheet6",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Switch": {
-      "main": [
-        [
-          {
-            "node": "Get row(s) in sheet1",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Get row(s) in sheet3",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Switch2",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Switch2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get row(s) in sheet3": {
-      "main": [
-        [
-          {
-            "node": "تكبيرات العيد",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get row(s) in sheet4": {
-      "main": [
-        [
-          {
-            "node": "فضل الأذكار",
+            "node": "Loop Over Items",
             "type": "main",
             "index": 0
           }
@@ -1337,7 +1213,7 @@
     "timeSavedMode": "fixed",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "16595b0b-7403-475c-b8d6-7614d4b21658",
+  "versionId": "85562d9d-e637-4a37-9fcb-3372f77f7485",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "de3099a5db87ce0d0e00a74a245a017e498d24badb0103268c9330d43b186bb7"
