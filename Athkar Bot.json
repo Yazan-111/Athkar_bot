@@ -32,7 +32,7 @@
             {
               "id": "e53b2237-2f6c-489e-9451-99e46d45b5f1",
               "name": "bot_token",
-              "value": "8622196701:AAGsrg4ywjJYVM_gbbjqxO-XzhDLjVzn5jQ",
+              "value": "REPLACE_WITH_YOUR_TELEGRAM_BOT_TOKEN",
               "type": "string"
             }
           ]
@@ -640,7 +640,7 @@
             {
               "id": "3e7365a6-130c-4710-ae78-2b22537d7f79",
               "name": "bot_token",
-              "value": "8622196701:AAGsrg4ywjJYVM_gbbjqxO-XzhDLjVzn5jQ",
+              "value": "REPLACE_WITH_YOUR_TELEGRAM_BOT_TOKEN",
               "type": "string"
             }
           ]
