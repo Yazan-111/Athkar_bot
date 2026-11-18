@@ -2,7 +2,7 @@
   "name": "Athkar Bot",
   "nodes": [
     {
-      "id": "596105ea-eb91-44eb-823a-6188712cb023",
+      "id": "ca0f5621-8380-49d1-96b6-ae4943b0e3c0",
       "name": "Telegram Trigger",
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
@@ -14,12 +14,12 @@
         "additionalFields": {}
       },
       "position": [
-        848,
-        336
+        400,
+        2112
       ]
     },
     {
-      "id": "302304c1-cef2-458e-9e1c-2890de3f6314",
+      "id": "12256ed5-0240-4057-8436-f2adf1480ae3",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -37,12 +37,12 @@
         "options": {}
       },
       "position": [
-        1056,
-        336
+        608,
+        2112
       ]
     },
     {
-      "id": "18980afc-cb51-4a15-a6ec-a84717683914",
+      "id": "6c1ec959-ed3d-415e-8c1f-4732d667e4e0",
       "name": "Normalize",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -50,12 +50,12 @@
         "jsCode": "const u = $('Telegram Trigger').first().json;\nlet chat_id, from = {}, text = '', cb = '', cb_id = '', message_id = null;\nif (u.callback_query) {\n  const q = u.callback_query;\n  chat_id = q.message.chat.id; from = q.from || {}; cb = q.data || ''; cb_id = q.id; message_id = q.message.message_id;\n} else if (u.message && u.message.chat) {\n  chat_id = u.message.chat.id; from = u.message.from || {}; text = (u.message.text || '').trim();\n} else { return []; }\nconst pad = n => String(n).padStart(3, '0');\nlet action = 'help', arg = '';\nif (cb) {\n  if (cb === 'home') action = 'home';\n  else if (cb === 'help') action = 'help';\n  else if (cb === 'set') action = 'settings';\n  else if (cb.startsWith('menu:')) { action = 'menu'; arg = parseInt(cb.split(':')[1]) || 0; }\n  else if (cb.startsWith('cat:')) { action = 'items'; arg = 'C' + pad(parseInt(cb.split(':')[1])); }\n  else if (cb.startsWith('tm:')) { action = 'timepick'; arg = cb.split(':')[1]; }\n  else if (cb.startsWith('st:')) { action = 'settime'; arg = cb.split(':').slice(1).join(':'); }\n  else if (cb.startsWith('tg:')) { action = 'toggle'; arg = cb.split(':')[1]; }\n} else {\n  const cmd = text.split(/[ @]/)[0].toLowerCase();\n  if (cmd === '/start' || text === 'تسجيل دخول') action = 'start';\n  else if (text === 'تسجيل خروج' || cmd === '/stop') { action = 'toggle'; arg = 'off'; }\n  else if (cmd === '/menu' || text === 'الأذكار' || text === 'عرض الأذكار') { action = 'menu'; arg = 0; }\n  else if (cmd === '/settings' || text === 'الإعدادات') action = 'settings';\n  else if (cmd === '/home') action = 'home';\n  else if (/^c\\d{3}(-\\d+)?$/i.test(text)) { action = 'items'; arg = text.toUpperCase(); }\n}\nreturn [{ json: { chat_id, first_name: from.first_name || '', username: from.username || '', action, arg, is_cb: !!cb, cb_id, message_id, text } }];"
       },
       "position": [
-        1280,
-        336
+        832,
+        2112
       ]
     },
     {
-      "id": "d39224b3-2c6b-4ee1-b2d0-933d1889798d",
+      "id": "600b968b-ec5a-460e-8c02-fce33ec6bbcd",
       "name": "Switch Action",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
@@ -261,12 +261,12 @@
         }
       },
       "position": [
-        1488,
-        224
+        1040,
+        2000
       ]
     },
     {
-      "id": "36271c0d-64e0-442b-aa2b-046dbacc00dc",
+      "id": "c09b3741-2f96-481e-a9c7-52ddfc3bb090",
       "name": "Register User",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
@@ -278,12 +278,12 @@
         }
       },
       "position": [
-        1728,
-        -176
+        1280,
+        1600
       ]
     },
     {
-      "id": "4714b02b-a718-4545-84a3-02d32fdaa480",
+      "id": "03d736d4-b714-49de-af2c-f3e4c6933eca",
       "name": "Build Welcome",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -291,12 +291,12 @@
         "jsCode": "const n = $('Normalize').first().json;\nconst pre = n.is_cb ? [{ json: { method: 'answerCallbackQuery', body: { callback_query_id: n.cb_id } } }] : [];\nconst reply = (text, kb) => {\n  const body = { chat_id: n.chat_id, text };\n  if (kb) body.reply_markup = { inline_keyboard: kb };\n  if (n.is_cb) body.message_id = n.message_id;\n  return { json: { method: n.is_cb ? 'editMessageText' : 'sendMessage', body } };\n};\nconst MAIN_KB = [\n  [{ text: '📖 أذكار حصن المسلم', callback_data: 'menu:0' }],\n  [{ text: '⚙️ الإعدادات', callback_data: 'set' }, { text: '❓ المساعدة', callback_data: 'help' }],\n];\nconst HOME_ROW = [{ text: '🏠 الرئيسية', callback_data: 'home' }];const r = $input.first().json;\nconst t = v => String(v || '').slice(0, 5);\nconst text = r.is_new\n  ? `أهلًا ${n.first_name} 👋\\nتم تسجيلك تلقائيًا في بوت الأذكار (الإصدار 2).\\n\\nستصلك أذكار الصباح الساعة ${t(r.morning_time)} والمساء الساعة ${t(r.evening_time)} بتوقيت الرياض، ويمكنك تغيير الأوقات من الإعدادات.\\n\\nاختر من الأزرار:`\n  : `أهلًا بعودتك ${n.first_name} 👋\\nتم تفعيل اشتراكك من جديد.\\n\\nاختر من الأزرار:`;\nreturn [reply(text, MAIN_KB)];"
       },
       "position": [
-        1952,
-        -176
+        1504,
+        1600
       ]
     },
     {
-      "id": "20876d21-5dda-4d34-9753-ca9bba375ab2",
+      "id": "fc58e072-81ce-4a9a-9fda-8b8469b7b57a",
       "name": "Build Home",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -304,12 +304,12 @@
         "jsCode": "const n = $('Normalize').first().json;\nconst pre = n.is_cb ? [{ json: { method: 'answerCallbackQuery', body: { callback_query_id: n.cb_id } } }] : [];\nconst reply = (text, kb) => {\n  const body = { chat_id: n.chat_id, text };\n  if (kb) body.reply_markup = { inline_keyboard: kb };\n  if (n.is_cb) body.message_id = n.message_id;\n  return { json: { method: n.is_cb ? 'editMessageText' : 'sendMessage', body } };\n};\nconst MAIN_KB = [\n  [{ text: '📖 أذكار حصن المسلم', callback_data: 'menu:0' }],\n  [{ text: '⚙️ الإعدادات', callback_data: 'set' }, { text: '❓ المساعدة', callback_data: 'help' }],\n  [{ text: '💬 تواصل مع المطوّر', url: 'https://t.me/ContactYazanAlqahtani_bot' }],\n];\nconst HOME_ROW = [{ text: '🏠 الرئيسية', callback_data: 'home' }];return [...pre, reply('🕌 بوت الأذكار — الإصدار 2\\nاختر من الأزرار:', MAIN_KB)];"
       },
       "position": [
-        1728,
-        16
+        1280,
+        1792
       ]
     },
     {
-      "id": "f0ddef03-09d1-4f0b-acef-98d89cedb050",
+      "id": "146730f2-d013-4d77-b90d-2aa1c3950976",
       "name": "Get Categories Page",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
@@ -321,13 +321,13 @@
         }
       },
       "position": [
-        1728,
-        224
+        1280,
+        2000
       ],
       "alwaysOutputData": true
     },
     {
-      "id": "e0c0de3e-e5e0-44ed-86a9-22426f1ac029",
+      "id": "9010206a-d273-4284-9681-a6249d98c1e7",
       "name": "Build Menu",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -335,12 +335,12 @@
         "jsCode": "const n = $('Normalize').first().json;\nconst pre = n.is_cb ? [{ json: { method: 'answerCallbackQuery', body: { callback_query_id: n.cb_id } } }] : [];\nconst reply = (text, kb) => {\n  const body = { chat_id: n.chat_id, text };\n  if (kb) body.reply_markup = { inline_keyboard: kb };\n  if (n.is_cb) body.message_id = n.message_id;\n  return { json: { method: n.is_cb ? 'editMessageText' : 'sendMessage', body } };\n};\nconst MAIN_KB = [\n  [{ text: '📖 أذكار حصن المسلم', callback_data: 'menu:0' }],\n  [{ text: '⚙️ الإعدادات', callback_data: 'set' }, { text: '❓ المساعدة', callback_data: 'help' }],\n];\nconst HOME_ROW = [{ text: '🏠 الرئيسية', callback_data: 'home' }];const rows = $input.all().map(i => i.json).filter(r => r.id);\nconst page = Number(n.arg) || 0;\nif (!rows.length) return [...pre, reply('لا توجد أبواب في هذه الصفحة.', [HOME_ROW])];\nconst total = Number(rows[0].total);\nconst pages = Math.max(1, Math.ceil(total / 10));\nconst kb = rows.map(r => [{ text: `${r.title_ar} (${r.code})`, callback_data: `cat:${r.id}` }]);\nconst nav = [];\nif (page > 0) nav.push({ text: '◀️ السابق', callback_data: `menu:${page - 1}` });\nif (page < pages - 1) nav.push({ text: 'التالي ▶️', callback_data: `menu:${page + 1}` });\nif (nav.length) kb.push(nav);\nkb.push(HOME_ROW);\nreturn [...pre, reply(`📖 أذكار حصن المسلم\\nالصفحة ${page + 1} من ${pages}\\n\\nاختر بابًا من الأزرار:`, kb)];"
       },
       "position": [
-        1952,
-        224
+        1504,
+        2000
       ]
     },
     {
-      "id": "d61f1f7a-237e-4931-8e98-729e8da71b99",
+      "id": "0ed6206b-f2e9-42e3-b4cf-ceefdfc6fc57",
       "name": "Get Items",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
@@ -352,13 +352,13 @@
         }
       },
       "position": [
-        1728,
-        416
+        1280,
+        2192
       ],
       "alwaysOutputData": true
     },
     {
-      "id": "fba901e9-0b5d-4e9f-84c9-adbeafaeb380",
+      "id": "24068a60-1294-479a-a311-15173a633b67",
       "name": "Build Items",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -366,12 +366,12 @@
         "jsCode": "const n = $('Normalize').first().json;\nconst pre = n.is_cb ? [{ json: { method: 'answerCallbackQuery', body: { callback_query_id: n.cb_id } } }] : [];\nconst reply = (text, kb) => {\n  const body = { chat_id: n.chat_id, text };\n  if (kb) body.reply_markup = { inline_keyboard: kb };\n  if (n.is_cb) body.message_id = n.message_id;\n  return { json: { method: n.is_cb ? 'editMessageText' : 'sendMessage', body } };\n};\nconst MAIN_KB = [\n  [{ text: '📖 أذكار حصن المسلم', callback_data: 'menu:0' }],\n  [{ text: '⚙️ الإعدادات', callback_data: 'set' }, { text: '❓ المساعدة', callback_data: 'help' }],\n];\nconst HOME_ROW = [{ text: '🏠 الرئيسية', callback_data: 'home' }];const rows = $input.all().map(i => i.json).filter(r => r.item_code);\nconst kb = [[{ text: '📖 الأبواب', callback_data: 'menu:0' }, { text: '🏠 الرئيسية', callback_data: 'home' }]];\nconst send = (text, withKb) => { const body = { chat_id: n.chat_id, text }; if (withKb) body.reply_markup = { inline_keyboard: kb }; return { json: { method: 'sendMessage', body } }; };\nif (!rows.length) return [...pre, send('لم أجد هذا الرمز. افتح قائمة الأبواب من الزر.', true)];\nconst LIMIT = 3500;\nconst blocks = [`📿 ${rows[0].title_ar} (${rows[0].cat_code})`];\nfor (const r of rows) {\n  const rep = Number(r.repeat_count) > 1 ? `\\n(يُكرَّر ${r.repeat_count} مرات)` : '';\n  let t = `【${r.item_code}】\\n${r.text_ar}${rep}`;\n  while (t.length > LIMIT) { blocks.push(t.slice(0, LIMIT)); t = t.slice(LIMIT); }\n  blocks.push(t);\n}\nconst chunks = []; let cur = '';\nfor (const b of blocks) {\n  if (cur && (cur.length + b.length + 2) > LIMIT) { chunks.push(cur); cur = b; }\n  else cur = cur ? cur + '\\n\\n' + b : b;\n}\nif (cur) chunks.push(cur);\nreturn [...pre, ...chunks.map((c, i) => send(c, i === chunks.length - 1))];"
       },
       "position": [
-        1952,
-        416
+        1504,
+        2192
       ]
     },
     {
-      "id": "1b387a05-ce4d-4edb-8203-50f96fa9e32e",
+      "id": "a7f34fcb-9d2a-433b-a286-64bd66c07f27",
       "name": "Get User Settings",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
@@ -383,13 +383,13 @@
         }
       },
       "position": [
-        1728,
-        624
+        1280,
+        2400
       ],
       "alwaysOutputData": true
     },
     {
-      "id": "1e40d70e-2d88-4a6f-8bb8-ba81e23f3a00",
+      "id": "1133cccc-c063-4eb2-bf92-8372fd7e000f",
       "name": "Build Timepicker",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -397,12 +397,12 @@
         "jsCode": "const n = $('Normalize').first().json;\nconst pre = n.is_cb ? [{ json: { method: 'answerCallbackQuery', body: { callback_query_id: n.cb_id } } }] : [];\nconst reply = (text, kb) => {\n  const body = { chat_id: n.chat_id, text };\n  if (kb) body.reply_markup = { inline_keyboard: kb };\n  if (n.is_cb) body.message_id = n.message_id;\n  return { json: { method: n.is_cb ? 'editMessageText' : 'sendMessage', body } };\n};\nconst MAIN_KB = [\n  [{ text: '📖 أذكار حصن المسلم', callback_data: 'menu:0' }],\n  [{ text: '⚙️ الإعدادات', callback_data: 'set' }, { text: '❓ المساعدة', callback_data: 'help' }],\n];\nconst HOME_ROW = [{ text: '🏠 الرئيسية', callback_data: 'home' }];const slot = n.arg === 'evening' ? 'evening' : 'morning';\nconst hours = slot === 'morning' ? [3,4,5,6,7,8,9,10,11] : [15,16,17,18,19,20,21,22];\nconst label = h => String(h).padStart(2, '0') + ':00';\nconst btns = hours.map(h => ({ text: label(h), callback_data: `st:${slot}:${String(h).padStart(2, '0')}` }));\nconst kb = [];\nfor (let i = 0; i < btns.length; i += 3) kb.push(btns.slice(i, i + 3));\nkb.push([{ text: '🔙 رجوع', callback_data: 'set' }]);\nreturn [...pre, reply(`${slot === 'morning' ? '☀️ اختر وقت أذكار الصباح' : '🌙 اختر وقت أذكار المساء'} (بتوقيت الرياض):`, kb)];"
       },
       "position": [
-        1728,
-        816
+        1280,
+        2592
       ]
     },
     {
-      "id": "9fd01609-fdfa-4fd3-8e09-9b624da02df6",
+      "id": "9459b021-e6af-4d57-bf9f-16f97a106bd7",
       "name": "Update Time",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
@@ -414,13 +414,13 @@
         }
       },
       "position": [
-        1728,
-        1024
+        1280,
+        2800
       ],
       "alwaysOutputData": true
     },
     {
-      "id": "1fd6ed17-492c-4654-94ba-79bc0b41bf4a",
+      "id": "e7549f81-b1ae-4a42-9b74-48f687fad81a",
       "name": "Toggle Active",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
@@ -432,13 +432,13 @@
         }
       },
       "position": [
-        1728,
-        1232
+        1280,
+        3008
       ],
       "alwaysOutputData": true
     },
     {
-      "id": "86f0e4bc-d768-41c0-9bef-d8ef60e2c360",
+      "id": "858b70e4-eb2d-4c76-9ff6-f71f7ae83849",
       "name": "Build Settings",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -446,12 +446,12 @@
         "jsCode": "const n = $('Normalize').first().json;\nconst pre = n.is_cb ? [{ json: { method: 'answerCallbackQuery', body: { callback_query_id: n.cb_id } } }] : [];\nconst reply = (text, kb) => {\n  const body = { chat_id: n.chat_id, text };\n  if (kb) body.reply_markup = { inline_keyboard: kb };\n  if (n.is_cb) body.message_id = n.message_id;\n  return { json: { method: n.is_cb ? 'editMessageText' : 'sendMessage', body } };\n};\nconst MAIN_KB = [\n  [{ text: '📖 أذكار حصن المسلم', callback_data: 'menu:0' }],\n  [{ text: '⚙️ الإعدادات', callback_data: 'set' }, { text: '❓ المساعدة', callback_data: 'help' }],\n];\nconst HOME_ROW = [{ text: '🏠 الرئيسية', callback_data: 'home' }];const r = $input.first() ? $input.first().json : {};\nif (r.is_active === undefined || r.is_active === null) {\n  return [...pre, reply('لم يتم تسجيلك بعد. اضغط /start للتسجيل.', null)];\n}\nconst t = v => String(v || '').slice(0, 5);\nconst text = `⚙️ الإعدادات\\n\\nالحالة: ${r.is_active ? 'مفعّل ✅' : 'متوقف ⏸'}\\n☀️ أذكار الصباح: ${t(r.morning_time)}\\n🌙 أذكار المساء: ${t(r.evening_time)}\\n(بتوقيت الرياض)`;\nconst kb = [\n  [{ text: '☀️ وقت الصباح', callback_data: 'tm:morning' }, { text: '🌙 وقت المساء', callback_data: 'tm:evening' }],\n  [r.is_active ? { text: '🔕 إيقاف الرسائل', callback_data: 'tg:off' } : { text: '🔔 تفعيل الرسائل', callback_data: 'tg:on' }],\n  HOME_ROW,\n];\nreturn [...pre, reply(text, kb)];"
       },
       "position": [
-        1952,
-        928
+        1504,
+        2704
       ]
     },
     {
-      "id": "6e145db7-768c-48f1-a704-2ad7df65239b",
+      "id": "96591f4e-6975-4855-8788-1be62e6983aa",
       "name": "Build Help",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -459,12 +459,12 @@
         "jsCode": "const n = $('Normalize').first().json;\nconst pre = n.is_cb ? [{ json: { method: 'answerCallbackQuery', body: { callback_query_id: n.cb_id } } }] : [];\nconst reply = (text, kb) => {\n  const body = { chat_id: n.chat_id, text };\n  if (kb) body.reply_markup = { inline_keyboard: kb };\n  if (n.is_cb) body.message_id = n.message_id;\n  return { json: { method: n.is_cb ? 'editMessageText' : 'sendMessage', body } };\n};\nconst MAIN_KB = [\n  [{ text: '📖 أذكار حصن المسلم', callback_data: 'menu:0' }],\n  [{ text: '⚙️ الإعدادات', callback_data: 'set' }, { text: '❓ المساعدة', callback_data: 'help' }],\n];\nconst HOME_ROW = [{ text: '🏠 الرئيسية', callback_data: 'home' }];const text = 'ما يقدمه البوت:\\n• أذكار الصباح والمساء تلقائيًا في وقتك.\\n• كل أبواب حصن المسلم من زر «أذكار حصن المسلم».\\n• تغيير الأوقات أو إيقاف الرسائل من «الإعدادات».\\n\\nاختصار: اكتب رمز باب مثل C027 أو ذكر مثل C027-3.';\nreturn [...pre, reply(text + '\\n\\nلأي مشكلة أو اقتراح تواصل معي من الزر أدناه.', [[{ text: '💬 تواصل مع المطوّر', url: 'https://t.me/ContactYazanAlqahtani_bot' }], HOME_ROW])];"
       },
       "position": [
-        1728,
-        1424
+        1280,
+        3200
       ]
     },
     {
-      "id": "b53739a0-f1a8-4dd8-b2d8-d2e420c98afd",
+      "id": "51689be2-e29a-413a-be8e-0c61e112a29d",
       "name": "Telegram Send",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -484,13 +484,13 @@
         }
       },
       "position": [
-        2320,
-        528
+        1872,
+        2304
       ],
       "onError": "continueRegularOutput"
     },
     {
-      "id": "b552b9f0-0b4f-4987-ba8f-5abf192c757d",
+      "id": "55381c4e-0975-4b2c-a43b-b116b882f0e8",
       "name": "Every 15 Minutes",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
@@ -505,12 +505,12 @@
         }
       },
       "position": [
-        816,
-        1760
+        368,
+        3536
       ]
     },
     {
-      "id": "c32bfb74-7ac2-4498-9e7a-697860ddd099",
+      "id": "84e77806-94d4-4a00-8854-8c6ef39cb04f",
       "name": "Get Due Users",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
@@ -520,13 +520,13 @@
         "options": {}
       },
       "position": [
-        1248,
-        1760
+        800,
+        3536
       ],
       "alwaysOutputData": true
     },
     {
-      "id": "28c34476-af5f-42d2-9928-9f09866e0ee3",
+      "id": "669d9d3a-43e1-4507-9606-95f566c01632",
       "name": "Get Morning Evening Items",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
@@ -536,14 +536,14 @@
         "options": {}
       },
       "position": [
-        1488,
-        1760
+        1040,
+        3536
       ],
       "alwaysOutputData": true,
       "executeOnce": true
     },
     {
-      "id": "d4abf8f2-af9d-4a07-9ed0-29a33844a64b",
+      "id": "d0b803d4-5961-4dee-8329-2a15ddf393cf",
       "name": "Build Messages",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -551,12 +551,12 @@
         "jsCode": "const users = $('Get Due Users').all().map(i => i.json).filter(u => u.user_id);\nconst items = $input.all().map(i => i.json).filter(r => r.item_code);\nif (!users.length || !items.length) return [];\nconst LIMIT = 3500;\nconst mk = slot => {\n  const blocks = [slot === 'morning' ? '🌅 أذكار الصباح' : '🌙 أذكار المساء'];\n  for (const r of items) {\n    const rep = Number(r.repeat_count) > 1 ? `\\n(يُكرَّر ${r.repeat_count} مرات)` : '';\n    let t = `【${r.item_code}】\\n${r.text_ar}${rep}`;\n    while (t.length > LIMIT) { blocks.push(t.slice(0, LIMIT)); t = t.slice(LIMIT); }\n    blocks.push(t);\n  }\n  const chunks = []; let cur = '';\n  for (const b of blocks) {\n    if (cur && (cur.length + b.length + 2) > LIMIT) { chunks.push(cur); cur = b; }\n    else cur = cur ? cur + '\\n\\n' + b : b;\n  }\n  if (cur) chunks.push(cur);\n  return chunks;\n};\nconst cache = {};\nconst out = [];\nfor (const u of users) {\n  cache[u.slot] = cache[u.slot] || mk(u.slot);\n  const ch = cache[u.slot];\n  ch.forEach((text, i) => out.push({ json: { user_id: u.user_id, category_id: u.category_id, slot: u.slot, chat_id: u.telegram_id, text, last: i === ch.length - 1 } }));\n}\nreturn out;"
       },
       "position": [
-        1712,
-        1760
+        1264,
+        3536
       ]
     },
     {
-      "id": "03d8bb70-6d65-4f51-8475-4032c777ae99",
+      "id": "72babeb3-3506-44b7-9cbb-219254105643",
       "name": "Log Sent",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
@@ -568,12 +568,12 @@
         }
       },
       "position": [
-        2192,
-        1760
+        1744,
+        3536
       ]
     },
     {
-      "id": "f5337649-9521-461d-ad4f-0dc012b8e664",
+      "id": "767d6678-dbae-44ca-a6e2-744c792f6ba7",
       "name": "Config1",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -591,12 +591,12 @@
         "options": {}
       },
       "position": [
-        1040,
-        1760
+        592,
+        3536
       ]
     },
     {
-      "id": "c484604f-c670-4ada-8673-dc39c7b7f5a3",
+      "id": "c3834db3-e374-40b2-8141-e9d7049aaa2c",
       "name": "Telegram Send1",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -616,13 +616,13 @@
         }
       },
       "position": [
-        1984,
-        1760
+        1536,
+        3536
       ],
       "onError": "continueRegularOutput"
     },
     {
-      "id": "7b03c9d0-4a74-413b-8678-d8bdd6eb86e3",
+      "id": "483e8eed-153d-4718-9b01-6cfa9ab3c3b8",
       "name": "When chat message received",
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.4,
@@ -630,12 +630,12 @@
         "options": {}
       },
       "position": [
-        816,
-        2432
+        368,
+        4208
       ]
     },
     {
-      "id": "6f93dbcb-0e59-4e57-907a-2c115d33ef8d",
+      "id": "c923d6b3-347e-443f-9d11-061d93afbe96",
       "name": "Get Active Users",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
@@ -645,12 +645,12 @@
         "options": {}
       },
       "position": [
-        1040,
-        2432
+        592,
+        4208
       ]
     },
     {
-      "id": "f78bbb6e-b29d-439b-a28e-2bcd333b9b3c",
+      "id": "698bdcad-3a5d-4709-8439-4bff985d52de",
       "name": "Loop Over Items",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
@@ -659,12 +659,12 @@
         "options": {}
       },
       "position": [
-        1264,
-        2432
+        816,
+        4208
       ]
     },
     {
-      "id": "6cc2328c-2c40-44c3-9027-c3bcfa53a4ff",
+      "id": "220d8dec-62a4-4f50-b2d0-f31b48a62776",
       "name": "Send a text message",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
@@ -676,13 +676,13 @@
         }
       },
       "position": [
-        1488,
-        2528
+        1040,
+        4304
       ],
       "onError": "continueRegularOutput"
     },
     {
-      "id": "596da28c-1d78-4795-a5c4-80b0d89f302e",
+      "id": "9b2e1b35-1206-4d59-b853-70324455edd1",
       "name": "Wait",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -690,12 +690,12 @@
         "amount": 1
       },
       "position": [
-        1712,
-        2528
+        1264,
+        4304
       ]
     },
     {
-      "id": "5665317f-00c9-4d61-b3f5-f77827e19c1a",
+      "id": "b9dd7e25-f8c1-4bb6-8ea2-b75b3b1582a1",
       "name": "Summary",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -703,8 +703,8 @@
         "jsCode": "const total = $('Get Active Users').all().length;\nreturn [{ json: { output: `انتهى الإرسال ✅ عدد المستخدمين المستهدفين: ${total}` } }];"
       },
       "position": [
-        1488,
-        2336
+        1040,
+        4112
       ]
     }
   ],
@@ -1085,5 +1085,5 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "5f6206bd-074e-4719-9adf-8352f8ccd0ec"
+  "versionId": "0f9b31cd-4677-4d9e-9d05-b8b318e97725"
 }
